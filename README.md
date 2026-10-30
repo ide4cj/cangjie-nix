@@ -11,5 +11,5 @@ Or Nightly:
 nix env shell github:ide4cj/cangjie-nix#nightly
 
 # Or just cjc
-nix run github:ide4cj/cangjie-nix#cjc
+nix run github:ide4cj/cangjie-nix#nightly.cjc
 ```
