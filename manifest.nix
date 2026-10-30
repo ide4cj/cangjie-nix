@@ -6,12 +6,9 @@ rec {
     in
     manifest.version;
 
-  sdk =
-    { path, platform }:
+  getAsset =
+    { manifest, assetName }:
     let
-      manifest = import path;
-      cangjieAssetName = "cangjie-sdk-${platform}-${manifest.version}.tar.gz";
-      stdxAssetName = "cangjie-stdx-${platform}-${manifest.stdxVersion}.zip";
       findAsset =
         assetName: assets:
         let
@@ -20,25 +17,66 @@ rec {
         if builtins.length results == 1 then
           builtins.head results
         else
-          throw "Expected exactly one asset named ${assetName} in ${toString path}";
+          throw "Expected exactly one asset named ${assetName} in manifest ${toString manifest}";
 
-      asset = {
-        cangjie = findAsset cangjieAssetName manifest.assets.cangjie;
-        stdx = findAsset stdxAssetName manifest.assets.stdx;
-      };
+      asset = findAsset assetName manifest.assets;
     in
     {
-      inherit (manifest) version stdxVersion;
-      inherit asset;
+      inherit (manifest) version;
+      inherit (asset) name hash;
     };
 
-  nightly.latest =
+  sdkAsset =
+    { path, platform }:
+    let
+      manifest = import path;
+    in
+    getAsset {
+      inherit manifest;
+      assetName = "cangjie-sdk-${platform}-${manifest.version}.tar.gz";
+    };
+
+  stdxAsset =
+    { path, platform }:
+    let
+      manifest = import path;
+    in
+    getAsset {
+      inherit manifest;
+      assetName = "cangjie-stdx-${platform}-${manifest.version}.zip";
+    };
+
+  sdk.nightly.latest =
     { platform }:
     let
-      date = import manifests/nightly/latest.nix;
+      date = import manifests/sdk/nightly/latest.nix;
     in
-    sdk {
-      path = manifests/nightly/${date}.nix;
+    sdkAsset {
+      path = manifests/sdk/nightly/${date}.nix;
+      inherit platform;
+    };
+
+  sdk.lts.latest =
+    { platform }:
+    let
+      version = import manifests/sdk/lts/latest.nix;
+    in
+    getAsset {
+      path = TODO: fix lts asset name for comparison!!
+      assetName = "cangjie-sdk-${platform}-${manifest.version}.tar.gz";
+    };
+    sdkAsset {
+      path = manifests/sdk/lts/${version}.nix;
+      inherit platform;
+    };
+
+  stdx.stable.latest =
+    { platform }:
+    let
+      version = import manifests/stdx/stable/latest.nix;
+    in
+    stdxAsset {
+      path = manifests/stdx/stable/${version}.nix;
       inherit platform;
     };
 }
