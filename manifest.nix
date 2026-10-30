@@ -28,8 +28,7 @@ rec {
       };
     in
     {
-      inherit (manifest) version;
-      inherit (manifest) stdxVersion;
+      inherit (manifest) version stdxVersion;
       inherit asset;
     };
 
