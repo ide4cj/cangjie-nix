@@ -62,12 +62,9 @@ rec {
       version = import manifests/sdk/lts/latest.nix;
     in
     getAsset {
-      path = TODO: fix lts asset name for comparison!!
-      assetName = "cangjie-sdk-${platform}-${manifest.version}.tar.gz";
-    };
-    sdkAsset {
-      path = manifests/sdk/lts/${version}.nix;
-      inherit platform;
+      manifest = import manifests/sdk/lts/${version}.nix;
+      #path = TODO: fix lts asset name... How to avoid encoding strange auth hashes in url?
+      assetName = "cangjie-sdk-${platform}-${version}.tar.gz";
     };
 
   stdx.stable.latest =
