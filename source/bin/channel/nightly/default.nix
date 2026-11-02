@@ -6,13 +6,13 @@ let
     sdk = manifest.sdk.nightly.latest {
       inherit platform;
     };
-    stdx = manifest.stdx.stable.latest {
+    stdx = manifest.stdx.nightly.latest {
       inherit platform;
     };
   };
   mkCangjie = (import ../../mkCangjieBin.nix);
   cangjieSdkUrl = import ./mkurl.nix;
-  cangjieStdxUrl = import ../../mkstdxurl.nix;
+  cangjieStdxUrl = import ./mkstdxurl.nix;
 in
 pkgs.callPackage mkCangjie {
   inherit (asset.sdk) version;

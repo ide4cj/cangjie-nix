@@ -46,6 +46,16 @@ rec {
       inherit platform;
     };
 
+  stdx.nightly.latest =
+    { platform }:
+    let
+      version = import manifests/stdx/nightly/latest.nix;
+    in
+    getAsset {
+      manifest = import manifests/stdx/nightly/${version}.nix;
+      inherit platform;
+    };
+
   stdx.stable.latest =
     { platform }:
     let
