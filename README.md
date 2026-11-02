@@ -1,10 +1,15 @@
-# Nix Cangjie packages
+# nix-cangjie
+
+Cangjie packages for Nix.
+
+Currently, supported only linux with exclusively picked lts and nightly versions.
+Timely distribution updates and mac support are planned.
 
 ## Usage example
 
 ### Quick shell
 
-#### LTS (currently doesn't work)
+#### LTS
 
 ```sh
 nix env shell github:ide4cj/cangjie-nix#lts
@@ -40,7 +45,9 @@ nix run github:ide4cj/cangjie-nix#nightly.cjc
     in {
         devShells.${system}.default = pkgs.mkShellNoCC {
             packages = [
-                cangjie-nix.packages.${system}.nightly
+                cangjie-nix.packages.${system}.lts
+                # or nightly:
+                # cangjie-nix.packages.${system}.nightly
             ];
             CANGJIE_HOME = "${cangjie-nix.packages.${system}.nightly}";
 
