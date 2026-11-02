@@ -6,39 +6,53 @@ rec {
     in
     manifest.version;
 
-  sdk =
-    { path, platform }:
+  getAsset =
+    { manifest, platform }:
     let
-      manifest = import path;
-      cangjieAssetName = "cangjie-sdk-${platform}-${manifest.version}.tar.gz";
-      stdxAssetName = "cangjie-stdx-${platform}-${manifest.stdxVersion}.zip";
       findAsset =
-        assetName: assets:
+        assets:
         let
-          results = builtins.filter (asset: asset.name == assetName) assets;
+          results = builtins.filter (asset: platform == "${asset.system}-${asset.arch}") assets;
         in
         if builtins.length results == 1 then
           builtins.head results
         else
-          throw "Expected exactly one asset named ${assetName} in ${toString path}";
+          throw "Expected exactly one asset for ${platform} in manifest ${toString manifest}";
 
-      asset = {
-        cangjie = findAsset cangjieAssetName manifest.assets.cangjie;
-        stdx = findAsset stdxAssetName manifest.assets.stdx;
-      };
+      asset = findAsset manifest.assets;
     in
-    {
-      inherit (manifest) version stdxVersion;
-      inherit asset;
+    asset
+    // {
+      inherit (manifest) version;
     };
 
-  nightly.latest =
+  sdk.nightly.latest =
     { platform }:
     let
-      date = import manifests/nightly/latest.nix;
+      date = import manifests/sdk/nightly/latest.nix;
     in
-    sdk {
-      path = manifests/nightly/${date}.nix;
+    getAsset {
+      manifest = import manifests/sdk/nightly/${date}.nix;
+      inherit platform;
+    };
+
+  sdk.lts.latest =
+    { platform }:
+    let
+      version = import manifests/sdk/lts/latest.nix;
+    in
+    getAsset {
+      manifest = import manifests/sdk/lts/${version}.nix;
+      inherit platform;
+    };
+
+  stdx.stable.latest =
+    { platform }:
+    let
+      version = import manifests/stdx/stable/latest.nix;
+    in
+    getAsset {
+      manifest = import manifests/stdx/stable/${version}.nix;
       inherit platform;
     };
 }
