@@ -7,43 +7,23 @@ rec {
     manifest.version;
 
   getAsset =
-    { manifest, assetName }:
+    { manifest, platform }:
     let
       findAsset =
-        assetName: assets:
+        assets:
         let
-          results = builtins.filter (asset: asset.name == assetName) assets;
+          results = builtins.filter (asset: platform == "${asset.system}-${asset.arch}") assets;
         in
         if builtins.length results == 1 then
           builtins.head results
         else
-          throw "Expected exactly one asset named ${assetName} in manifest ${toString manifest}";
+          throw "Expected exactly one asset for ${platform} in manifest ${toString manifest}";
 
-      asset = findAsset assetName manifest.assets;
+      asset = findAsset manifest.assets;
     in
-    {
+    asset
+    // {
       inherit (manifest) version;
-      inherit (asset) name hash;
-    };
-
-  sdkAsset =
-    { path, platform }:
-    let
-      manifest = import path;
-    in
-    getAsset {
-      inherit manifest;
-      assetName = "cangjie-sdk-${platform}-${manifest.version}.tar.gz";
-    };
-
-  stdxAsset =
-    { path, platform }:
-    let
-      manifest = import path;
-    in
-    getAsset {
-      inherit manifest;
-      assetName = "cangjie-stdx-${platform}-${manifest.version}.zip";
     };
 
   sdk.nightly.latest =
@@ -51,8 +31,8 @@ rec {
     let
       date = import manifests/sdk/nightly/latest.nix;
     in
-    sdkAsset {
-      path = manifests/sdk/nightly/${date}.nix;
+    getAsset {
+      manifest = import manifests/sdk/nightly/${date}.nix;
       inherit platform;
     };
 
@@ -63,8 +43,7 @@ rec {
     in
     getAsset {
       manifest = import manifests/sdk/lts/${version}.nix;
-      #path = TODO: fix lts asset name... How to avoid encoding strange auth hashes in url?
-      assetName = "cangjie-sdk-${platform}-${version}.tar.gz";
+      inherit platform;
     };
 
   stdx.stable.latest =
@@ -72,8 +51,8 @@ rec {
     let
       version = import manifests/stdx/stable/latest.nix;
     in
-    stdxAsset {
-      path = manifests/stdx/stable/${version}.nix;
+    getAsset {
+      manifest = import manifests/stdx/stable/${version}.nix;
       inherit platform;
     };
 }

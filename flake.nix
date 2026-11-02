@@ -49,6 +49,15 @@
               echo "$(cjc --version)"
             '';
           };
+          lts = pkgs.mkShellNoCC {
+            packages = [
+              cangjie-bin-lts
+            ];
+            shellHook = ''
+              echo "Cangjie LTS development environment"
+              echo "$(cjc --version)"
+            '';
+          };
         };
       }
     );
