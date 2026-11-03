@@ -76,10 +76,15 @@ stdenv.mkDerivation {
   # Could it make sense to include rpath into final binary?
   #  --append-flags "--set-runtime-rpath" \
   postFixup = ''
+    function get_library_path_with() {
+        echo $(dirname $(${stdenv.cc}/bin/cc -print-file-name=$1))
+    }
+
     wrapProgram $out/bin/cjc \
         --append-flags "-B${stdenv.cc.bintools}/bin" \
-        --append-flags "-B${stdenv.cc.libc}/lib" \
-        --append-flags "-L${stdenv.cc.libc}/lib" \
+        --append-flags "-B$(get_library_path_with Scrt1.o)" \
+        --append-flags "-B$(get_library_path_with crti.o)" \
+        --append-flags "-B$(get_library_path_with crtbeginS.o)" \
         --append-flags "--link-options" \
         --append-flags "-I${stdenv.cc.bintools.dynamicLinker}"
   '';
