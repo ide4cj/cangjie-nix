@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        channel: [ nightly, lts ]
+        channel: [ nightly, stable ]
         arch: [ x86_64, aarch64 ]
         include:
           - arch: x86_64

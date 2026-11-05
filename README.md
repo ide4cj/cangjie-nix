@@ -6,7 +6,7 @@ Declarative and reproducible Cangjie packages with Nix.
 
 Features:
 - Automatically manages up-to-date Cangjie SDK version.
-- Supports SDK version pinning.
+- Supports SDK and stdx version pinning.
 
 ## Platforms
 
@@ -30,17 +30,24 @@ Cangjie is provided from the following up-to-date channels:
 - Nightly
 
 Provided packages:
-- `cangjie-nix` which is defaulted to `cangjie-nix.lts`
-- `cangjie-nix.lts` which is defaulted to `cangjie-nix.lts.latest`
+- `cangjie-nix` which is defaulted to `cangjie-nix.stable`
+- `cangjie-nix.stable` which is defaulted to `cangjie-nix.stable.latest`
 - `cangjie-nix.nightly` which is defaulted to `cangjie-nix.nightly.latest`
 
 Besides latest SDK, you can pin specific version, like:
-- `cangjie-nix.lts."1.0.5"` (format: `major.minor.patch`)
+- `cangjie-nix.stable."1.0.5"` (format: `major.minor.patch`)
 - `cangjie-nix.nightly."2026-11-06"` (format: `yyyy-mm-dd`)
 - `cangjie-nix.nightly."1.3.0-alpha.20261106001044"` (format: original version)
 
 Stable versions support:
 - `1.0.5` (LTS)
+
+Stdx provides `static` and `dynamic` variants under
+`cangjie-nix.packages.${system}.stdx`. Each channel (`nightly`, `stable`) selects its
+latest version by default and also exposes it as `.latest`. Pin versions with:
+- `stdx.nightly."2026-11-10".static`
+- `stdx.nightly."1.3.0-alpha.20261110001016".static`
+- `stdx.stable."1.2.0.1".dynamic`
 
 ## Usage example
 
@@ -48,7 +55,7 @@ Stable versions support:
 
 Latest LTS SDK:
 ```sh
-nix env shell github:ide4cj/cangjie-nix#lts
+nix env shell github:ide4cj/cangjie-nix#stable
 ```
 
 Latest nightly SDK:
@@ -90,17 +97,18 @@ nix run github:ide4cj/cangjie-nix#nightly.cjc
       pkgs = import nixpkgs { inherit system; };
       sdk = cangjie-nix.packages.${system};
       nightly = sdk.nightly.override { 
+      #      OR sdk.stable
         inherit (pkgs) stdenv;
         stdx = null;
+      #     OR sdk.stdx.nightly."2026-11-13".static
       };
-      #      OR sdk.lts
     in {
       devShells.${system} = {
         nightly = pkgs.mkShell {
           packages = [ nightly ];
 
           CANGJIE_HOME = "${nightly}";
-          CANGJIE_STDX_PATH = "${sdk.stdx.lts.dynamic}/stdx";
+          CANGJIE_STDX_PATH = "${sdk.stdx.stable.dynamic}/stdx";
 
           shellHook = ''
             echo "~~ in cangjie environment ~~"

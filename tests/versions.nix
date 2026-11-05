@@ -1,7 +1,7 @@
 {
   pkgs,
   nightly,
-  lts,
+  stable,
 }:
 let
   inherit (pkgs) lib;
@@ -39,7 +39,7 @@ let
 
   failures = lib.runTests (
     channelTests "nightly" nightly ../manifests/sdk/nightly
-    // channelTests "lts" lts ../manifests/sdk/lts
+    // channelTests "stable" stable ../manifests/sdk/stable
   );
 in
 

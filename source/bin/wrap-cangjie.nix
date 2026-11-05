@@ -16,7 +16,8 @@ symlinkJoin {
 
   postBuild =
     let
-      cangjie-stdx-path = if stdx == null then "" else "${stdx}/stdx";
+      pinnedStdx = if stdx == null then null else stdx.override { inherit unwrapped; };
+      cangjie-stdx-path = if stdx == null then "" else "${pinnedStdx}/stdx";
     in
     ''
       rm "$out/bin/cjc" "$out/bin/cjpm"

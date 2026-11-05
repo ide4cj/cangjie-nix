@@ -9,7 +9,7 @@ let
   tld = ./../../../..;
   manifests = tld + /manifests;
   manifest = {
-    sdk = import "${manifests}/sdk/lts/${sdkVersion}.nix";
+    sdk = import "${manifests}/sdk/stable/${sdkVersion}.nix";
     stdx = import "${manifests}/stdx/stable/${stdxVersion}.nix";
   };
   mkUrl = {

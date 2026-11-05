@@ -45,17 +45,17 @@ rec {
 
   sdk.nightly.manifests = getManifests manifests/sdk/nightly;
 
-  sdk.lts.latest =
+  sdk.stable.latest =
     { platform }:
     let
-      version = import manifests/sdk/lts/latest.nix;
+      version = import manifests/sdk/stable/latest.nix;
     in
     getAsset {
-      manifest = import manifests/sdk/lts/${version}.nix;
+      manifest = import manifests/sdk/stable/${version}.nix;
       inherit platform;
     };
 
-  sdk.lts.manifests = getManifests manifests/sdk/lts;
+  sdk.stable.manifests = getManifests manifests/sdk/stable;
 
   stdx.nightly.latest =
     { platform }:
@@ -67,6 +67,8 @@ rec {
       inherit platform;
     };
 
+  stdx.nightly.manifests = getManifests manifests/stdx/nightly;
+
   stdx.stable.latest =
     { platform }:
     let
@@ -76,4 +78,6 @@ rec {
       manifest = import manifests/stdx/stable/${version}.nix;
       inherit platform;
     };
+
+  stdx.stable.manifests = getManifests manifests/stdx/stable;
 }

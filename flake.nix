@@ -16,26 +16,29 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        platform = (import ./config.nix).platforms.nix2release.${system};
+        manifest = import ./manifest.nix;
         bin = import ./source/bin { inherit pkgs system; };
 
         mkBuilds =
-          { manifests, mkCangjie }:
+          {
+            manifests,
+            mkPackage,
+          }:
           builtins.listToAttrs (
             builtins.concatMap (
               manifest:
               let
                 name = pkgs.lib.removeSuffix ".nix" manifest.filename;
-                cangjie = (mkCangjie { sdkVersion = name; }).cangjie;
+                build = mkPackage name;
               in
               [
                 {
                   inherit name;
-                  value = cangjie;
+                  value = build;
                 }
                 {
                   name = manifest.version;
-                  value = cangjie;
+                  value = build;
                 }
               ]
             ) manifests
@@ -75,37 +78,58 @@
           });
 
         nightlyBuilds = mkBuilds {
-          manifests = (import ./manifest.nix).sdk.nightly.manifests;
-          mkCangjie = bin.nightly;
+          manifests = manifest.sdk.nightly.manifests;
+          mkPackage = sdkVersion: (bin.nightly { inherit sdkVersion; }).cangjie;
         };
 
-        ltsBuilds = mkBuilds {
-          manifests = (import ./manifest.nix).sdk.lts.manifests;
-          mkCangjie = bin.lts;
+        stableBuilds = mkBuilds {
+          manifests = manifest.sdk.stable.manifests;
+          mkPackage = sdkVersion: (bin.stable { inherit sdkVersion; }).cangjie;
         };
 
-        nightly = populateDerivations (bin.nightly { }).cangjie nightlyBuilds;
-        lts = populateDerivations (bin.lts { }).cangjie ltsBuilds;
+        nightlyStdxBuilds = mkBuilds {
+          manifests = manifest.stdx.nightly.manifests;
+          mkPackage = sdkVersion: (bin.nightly { inherit sdkVersion; }).stdx;
+        };
+
+        stableStdxBuilds = mkBuilds {
+          manifests = manifest.stdx.stable.manifests;
+          mkPackage = stdxVersion: (bin.stable { inherit stdxVersion; }).stdx;
+        };
+
+        nightlyPackages = bin.nightly { };
+        stablePackages = bin.stable { };
+        nightly = populateDerivations nightlyPackages.cangjie nightlyBuilds;
+        stable = populateDerivations stablePackages.cangjie stableBuilds;
       in
       {
         # Publish derivation
         packages = {
-          inherit nightly lts;
-          default = lts;
-          # TODO: versioning for stdx
+          inherit nightly stable;
+          default = stable;
           stdx = {
-            nightly = (bin.nightly { }).stdx;
-            lts = (bin.lts { }).stdx;
+            nightly =
+              nightlyPackages.stdx
+              // nightlyStdxBuilds
+              // {
+                latest = nightlyPackages.stdx;
+              };
+            stable =
+              stablePackages.stdx
+              // stableStdxBuilds
+              // {
+                latest = stablePackages.stdx;
+              };
           };
         };
         apps = {
           nightly = mkApps nightly.latest;
-          lts = mkApps lts.latest;
+          stable = mkApps stable.latest;
         }
-        // mkApps lts.latest;
+        // mkApps stable.latest;
 
         checks = {
-          versions = import ./tests/versions.nix { inherit pkgs nightly lts; };
+          versions = import ./tests/versions.nix { inherit pkgs nightly stable; };
         };
 
         # Publish devShell for "nix develop"
@@ -119,16 +143,16 @@
               echo "$(cjc --version)"
             '';
           };
-          lts = pkgs.mkShellNoCC {
+          stable = pkgs.mkShellNoCC {
             packages = [
-              lts.latest
+              stable.latest
             ];
             shellHook = ''
               echo "Cangjie LTS development environment"
               echo "$(cjc --version)"
             '';
           };
-          default = self.devShells.${system}.lts;
+          default = self.devShells.${system}.stable;
         };
       }
     );
