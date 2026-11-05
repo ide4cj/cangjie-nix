@@ -2,42 +2,25 @@
   version,
   url,
   hash,
-  stdxurl,
-  stdxhash,
   stdenv,
   fetchurl,
   makeWrapper,
   autoPatchelfHook,
-  python311,
   openssl,
-  unzip,
 }:
-let
-  cangjieSrc = fetchurl { inherit url hash; };
-  stdxSrc = fetchurl {
-    url = stdxurl;
-    hash = stdxhash;
-  };
-in
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   inherit version;
 
-  pname = "cangjie";
+  pname = "cangjie-std";
 
-  srcs = [
-    cangjieSrc
-    stdxSrc
-  ];
+  src = fetchurl { inherit url hash; };
 
   nativeBuildInputs = [
     makeWrapper
     autoPatchelfHook
-    unzip
   ];
-  # LLDB needs Python 3.11; the LTS std FFI links against OpenSSL 3.
   buildInputs = [
     stdenv.cc.cc.lib
-    python311
     openssl
   ];
 
@@ -46,30 +29,26 @@ stdenv.mkDerivation {
 
   unpackPhase = ''
     runHook preUnpack
-
-    mkdir -p src/cangjie src/stdx
-    tar -xzf ${cangjieSrc} -C src
-    unzip -q ${stdxSrc} -d src/stdx
-    sourceRoot="src"
-
+    tar -xzf ${src}
+    sourceRoot="cangjie"
     runHook postUnpack
   '';
 
   installPhase = ''
     mkdir $out
-    cp cangjie/envsetup.sh $out/
-    cp -r cangjie/bin $out/
-    cp -r cangjie/lib $out/
-    cp -r cangjie/modules $out/
-    cp -r cangjie/runtime $out/
-    cp -r cangjie/third_party $out/
-    cp -r cangjie/tools $out/
+    cp envsetup.sh $out/
+    cp -r bin $out/
+    cp -r lib $out/
+    cp -r modules $out/
+    cp -r runtime $out/
 
-    cp -r stdx $out/third_party/
+    mkdir -p $out/third_party/llvm/bin
+    cp third_party/llvm/bin/opt $out/third_party/llvm/bin/
+    cp third_party/llvm/bin/llc $out/third_party/llvm/bin/
+    cp third_party/llvm/bin/llvm-objcopy $out/third_party/llvm/bin/
 
-    ln -s $out/tools/bin/LSPServer $out/bin/
-    ln -s $out/tools/bin/cjpm $out/bin/
-    ln -s $out/tools/bin/cjfmt $out/bin/cjfmt
+    mkdir -p $out/third_party/llvm/lib
+    cp third_party/llvm/lib/libLLVM-15.so $out/third_party/llvm/lib/
   '';
 
   # stdenv.cc.bintools: Use `ld` from Nix binutils, which saves dynamic libraries path to binary's rpath

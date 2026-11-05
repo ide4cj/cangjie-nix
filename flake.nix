@@ -11,27 +11,31 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        cangjie-bin-nightly = pkgs.callPackage ./source/bin/channel/nightly { inherit system; };
-        cangjie-bin-lts = pkgs.callPackage ./source/bin/channel/lts { inherit system; };
+        bin = import ./source/bin { inherit pkgs system; };
       in
       {
         # Publish derivation
         packages = {
-          nightly = cangjie-bin-nightly;
-          lts = cangjie-bin-lts;
+          nightly = bin.nightly.cangjie;
+          lts = bin.lts.cangjie;
+
+          stdx = {
+            nightly = bin.nightly.stdx;
+            # TODO: lts
+          };
         };
         # Publish app for "nix run"
         apps = {
           nightly.cjc = {
             type = "app";
-            program = "${cangjie-bin-nightly}/bin/cjc";
+            program = "${bin.nightly.cangjie}/bin/cjc";
             meta = {
               description = "Cangjie compiler";
             };
           };
           lts.cjc = {
             type = "app";
-            program = "${cangjie-bin-lts}/bin/cjc";
+            program = "${bin.lts.cangjie}/bin/cjc";
             meta = {
               description = "Cangjie compiler";
             };
@@ -42,7 +46,7 @@
         devShells = {
           nightly = pkgs.mkShellNoCC {
             packages = [
-              cangjie-bin-nightly
+              bin.nightly.cangjie
             ];
             shellHook = ''
               echo "Cangjie nightly development environment"
@@ -51,7 +55,7 @@
           };
           lts = pkgs.mkShellNoCC {
             packages = [
-              cangjie-bin-lts
+              bin.lts.cangjie
             ];
             shellHook = ''
               echo "Cangjie LTS development environment"
