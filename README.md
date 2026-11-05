@@ -70,10 +70,9 @@ nix run github:ide4cj/cangjie-nix#nightly.cjc
   description = "devenv.cangjie";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     cangjie-nix = {
-      url = "github:/ide4cj/cangjie-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:ide4cj/cangjie-nix";
     };
   };
 
@@ -81,20 +80,28 @@ nix run github:ide4cj/cangjie-nix#nightly.cjc
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
+      sdk = cangjie-nix.packages.${system};
+      nightly = sdk.nightly.override { 
+        inherit (pkgs) stdenv;
+        stdx = null;
+      };
+      #      OR sdk.lts
     in {
-        devShells.${system}.default = pkgs.mkShellNoCC {
-            packages = [
-                cangjie-nix.packages.${system}.lts
-                # or nightly:
-                # cangjie-nix.packages.${system}.nightly
-            ];
-            CANGJIE_HOME = "${cangjie-nix.packages.${system}.nightly}";
+      devShells.${system} = {
+        nightly = pkgs.mkShell {
+          packages = [ nightly ];
 
-            shellHook = ''
-                echo "~~ in cangjie environment ~~"
-                echo "$(cjc --version)"
-            '';
+          CANGJIE_HOME = "${nightly}";
+          CANGJIE_STDX_PATH = "${sdk.stdx.lts.dynamic}/stdx";
+
+          shellHook = ''
+            echo "~~ in cangjie environment ~~"
+            echo "$(cjc --version)"
+          '';
         };
+
+        default = self.devShells.${system}.nightly;
+      };
     };
 }
 

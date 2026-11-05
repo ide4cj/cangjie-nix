@@ -21,15 +21,9 @@ let
       inherit platform;
     };
   };
-  mkCangjie = (import ../../mkCangjieBin.nix);
-  cangjieSdkUrl = import ./mkurl.nix;
-  cangjieStdxUrl = import ../../mkstdxurl.nix;
 in
-pkgs.callPackage mkCangjie {
-  inherit (asset.sdk) version;
-  url = cangjieSdkUrl asset.sdk;
-  inherit (asset.sdk) hash;
-
-  stdxurl = cangjieStdxUrl asset.stdx;
-  stdxhash = asset.stdx.hash;
+import ../../mkCangjie.nix {
+  inherit pkgs asset;
+  sdkUrl = import ./mkurl.nix;
+  stdxUrl = import ../../mkstdxurl.nix;
 }
