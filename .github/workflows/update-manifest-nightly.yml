@@ -1,0 +1,45 @@
+name: Update latest nightly
+
+on:
+  # Allow running from the Actions manually.
+  workflow_dispatch:
+
+  schedule:
+    - cron: "30 3 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: manifest-write
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+
+      - name: Set up python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run manifest update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM_REPO_NAME: nightly_build
+          UPSTREAM_REPO_OWNER: cangjie-bot
+        run: |
+          python scripts/update-manifest-nightly.py
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ github.token }}
+          branch: automation/manifest-nightly-update
+          commit-message: "chore: update latest nightly manifest"
+          title: "chore: update latest nightly manifest"
