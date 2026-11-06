@@ -58,6 +58,12 @@ jobs:
             Update latest nightly cangjie versions in manifests.
             This PR is prepared automatically at  ${{ github.event.repository.updated_at}}.
 
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
       - name: Enable auto-merge
         if: steps.pr.outputs.pull-request-number != ''
         env:
