@@ -9,12 +9,12 @@
     {
       system = "linux";
       arch = "aarch64";
-      hash = "sha256-e48113297acf5278398e9f19e5839bcf65e46391dea5f76aa3124ec4a221474e";
+      hash = "sha256-5IETKXrPUng5jp8Z5YObz2XkY5HepfdqoxJOxKIhR04=";
     }
     {
       system = "mac";
       arch = "aarch64";
-      hash = "sha256-b3120d3b6e712375373188ea3291f76d2b45ae5ede3cc51798dfd78765f18c9c";
+      hash = "sha256-sxINO25xI3U3MYjqMpH3bStFrl7ePMUXmN/Xh2XxjJw=";
     }
   ];
 }

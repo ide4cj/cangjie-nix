@@ -1,0 +1,47 @@
+name: Build Nix package
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [master, main]
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build cangjie-${{ matrix.channel }} at ubuntu-${{matrix.arch}}
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [ nightly, lts ]
+        arch: [ x86_64, aarch64 ]
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ github.token }}
+
+      - name: Build latest ${{ matrix.channel }} derivation
+        run: nix build .#${{ matrix.channel }} --print-build-logs
+
+      - name: Check cjc package
+        run: nix run ".#${{ matrix.channel }}.cjc" -- --version
