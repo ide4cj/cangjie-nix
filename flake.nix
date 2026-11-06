@@ -11,20 +11,45 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        cangjie-bin-nightly = pkgs.callPackage ./source/bin/channel/nightly { inherit system; };
+        platform = (import ./config.nix).platforms.nix2release.${system};
+
+        mkCangjieNightly = import ./source/bin/channel/nightly;
         cangjie-bin-lts = pkgs.callPackage ./source/bin/channel/lts { inherit system; };
+
+        nightlyBuilds = builtins.listToAttrs (
+          map (name: {
+            name = pkgs.lib.removeSuffix ".nix" name;
+            value = pkgs.callPackage mkCangjieNightly {
+              inherit platform;
+              date = pkgs.lib.removeSuffix ".nix" name;
+            };
+          }) (import ./manifest.nix).sdk.nightly.manifests
+        );
+        latestNightly = pkgs.callPackage mkCangjieNightly {
+          inherit platform;
+        };
+        nightly = latestNightly.overrideAttrs (old: {
+          passthru =
+            (old.passthru or { })
+            // nightlyBuilds
+            // {
+              latest = latestNightly;
+            };
+        });
+
       in
       {
         # Publish derivation
-        packages = {
-          nightly = cangjie-bin-nightly;
+        legacyPackages = {
+          inherit nightly;
+          default = nightly;
           lts = cangjie-bin-lts;
         };
         # Publish app for "nix run"
         apps = {
           nightly.cjc = {
             type = "app";
-            program = "${cangjie-bin-nightly}/bin/cjc";
+            program = "${nightly.latest}/bin/cjc";
             meta = {
               description = "Cangjie compiler";
             };
@@ -42,7 +67,7 @@
         devShells = {
           nightly = pkgs.mkShellNoCC {
             packages = [
-              cangjie-bin-nightly
+              nightly.latest
             ];
             shellHook = ''
               echo "Cangjie nightly development environment"

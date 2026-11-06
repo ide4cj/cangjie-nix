@@ -1,12 +1,22 @@
-{ pkgs, system, ... }:
 let
-  manifest = import ./../../../../manifest.nix;
-  platform = (import ./../../../../config.nix).platforms.nix2release.${system};
+  tld = ./../../../..;
+  manifests = tld + /manifests;
+in
+{
+  pkgs,
+  platform,
+  date ? import "${manifests}/sdk/nightly/latest.nix",
+  ...
+}:
+let
+  getAsset = (import "${tld}/manifest.nix").getAsset;
   asset = {
-    sdk = manifest.sdk.nightly.latest {
+    sdk = getAsset {
+      manifest = import "${manifests}/sdk/nightly/${date}.nix";
       inherit platform;
     };
-    stdx = manifest.stdx.nightly.latest {
+    stdx = getAsset {
+      manifest = import "${manifests}/stdx/nightly/${date}.nix";
       inherit platform;
     };
   };
