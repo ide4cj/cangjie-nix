@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import datetime
 import logging
 import os
 import re
@@ -57,7 +58,7 @@ def get_latest_manifest_ref_date(manifest_ref_path: Path) -> date | None:
     if latest_ref_contents is None:
         return None
     latest_ref_contents = latest_ref_contents.group(1)
-    latest_date = date.strptime(latest_ref_contents, DATE_FORMAT)
+    latest_date = datetime.datetime.strptime(latest_ref_contents, DATE_FORMAT).date()
     return latest_date
 
 def has_latest_manifest(
