@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v6
+        with:
+          ref: master
 
       - name: Set up python
         uses: actions/setup-python@v7
@@ -41,5 +43,9 @@ jobs:
         with:
           token: ${{ github.token }}
           branch: automation/manifest-nightly-update
+          base: master
           commit-message: "chore: update latest nightly manifest"
           title: "chore: update latest nightly manifest"
+          body: |
+            Update latest nightly cangjie versions in manifests.
+            This PR is prepared automatically at  ${{ github.event.repository.updated_at}}.

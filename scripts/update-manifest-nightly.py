@@ -9,6 +9,7 @@ from pathlib import Path
 
 from util.github import *
 from util.parser import *
+from util.util import *
 from util.writer import *
 
 REPO_NAME = os.environ["UPSTREAM_REPO_NAME"]
@@ -16,7 +17,6 @@ REPO_OWNER = os.environ["UPSTREAM_REPO_OWNER"]
 ONLY_LATEST_VERSION = True
 REPO_LOCAL_PATH = Path(__file__).parent.parent.resolve()
 
-DATE_FORMAT = "%Y-%m-%d"
 TODAY = date.today()
 LATEST_SDK_NIGHTLY_FILENAME = "latest.nix"
 LATEST_STDX_NIGHTLY_FILENAME = LATEST_SDK_NIGHTLY_FILENAME

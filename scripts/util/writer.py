@@ -1,10 +1,14 @@
 import logging
 import tempfile
+from datetime import date
 from pathlib import Path
+
+from .util import *
 
 logger = logging.getLogger(__name__)
 
-def write_manifest(assets, version) -> Path :
+
+def write_manifest(assets, version) -> Path:
     manifest = tempfile.NamedTemporaryFile(
         prefix=f"manifest-{version['year']}-{version['month']}-{version['day']}.nix",
         delete=False,
@@ -38,10 +42,15 @@ def write_manifest(assets, version) -> Path :
 
 
 def write_latest_manifest_ref(version) -> Path:
-    date = f"{version['year']}-{version['month']}-{version['day']}"
+    latest_date = date(
+        year=int(version["year"]),
+        month=int(version["month"]),
+        day=int(version["day"]),
+    )
+
     manifest_ref = tempfile.NamedTemporaryFile(prefix="latest.nix", delete=False)
     with manifest_ref as f:
         f.write(b'"')
-        f.write(date.encode())
+        f.write(latest_date.strftime(DATE_FORMAT).encode())
         f.write(b'"')
     return Path(manifest_ref.name).resolve()
