@@ -56,6 +56,16 @@ rec {
       inherit platform;
     };
 
+  sdk.lts.manifests =
+    let
+      dir = manifests/sdk/lts;
+    in
+    builtins.filter (
+      name:
+      (builtins.readDir dir).${name} == "regular"
+      && builtins.match "[0-9]+\.[0-9]+\.[0-9]+\\.nix" name != null
+    ) (builtins.attrNames (builtins.readDir dir));
+
   stdx.nightly.latest =
     { platform }:
     let

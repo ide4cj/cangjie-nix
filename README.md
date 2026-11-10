@@ -1,26 +1,65 @@
 # nix-cangjie
 
-Cangjie packages for Nix.
+Declarative and reproducible Cangjie packages with Nix.
 
-Currently, supported only linux with exclusively picked lts and nightly versions.
-Timely distribution updates and mac support are planned.
+Features:
+- Automatically manages up-to-date Cangjie SDK version.
+- Supports SDK version pinning.
+
+## Platforms
+
+The following cangjie packages are provided.
+
+| system | architecture    | source |
+|--------|-----------------|--------|
+| linux  | aarch64, x86_64 | bin    |
+| mac    | TBD             | TBD    |
+
+> [!NOTE]
+> Currently, SDK flavor for cross-compilation is not supported.
+
+> [!NOTE]
+> SDK package from git source with local build is not yet supported. Only prebilt artifacts are packaged. 
+
+## Versions
+
+Cangjie is provided from the following up-to-date channels:
+- Stable (LTS)
+- Nightly
+
+Provided packages:
+- `cangjie-nix` which is defaulted to `cangjie-nix.lts`
+- `cangjie-nix.lts` which is defaulted to `cangjie-nix.lts.latest`
+- `cangjie-nix.nightly` which is defaulted to `cangjie-nix.nightly.latest`
+
+Besides latest SDK, you can pin specific version, like:
+- `cangjie-nix.lts."1.0.5"` (format: `major.minor.patch`)
+- `cangjie-nix.nightly."2026-11-06"` (format: `yyyy-mm-dd`)
+
+Stable versions support:
+- `1.0.5` (LTS)
 
 ## Usage example
 
 ### Quick shell
 
-#### LTS
-
+Latest LTS SDK:
 ```sh
 nix env shell github:ide4cj/cangjie-nix#lts
 ```
 
-#### Nightly
-
+Latest nightly SDK:
 ```sh
 nix env shell github:ide4cj/cangjie-nix#nightly
+```
 
-# Or just cjc
+Specific pinned nightly SDK:
+```sh
+nix env shell github:ide4cj/cangjie-nix#nightly.2026-11-06
+```
+
+Latest nightly `cjc`:
+```sh
 nix run github:ide4cj/cangjie-nix#nightly.cjc
 ```
 
