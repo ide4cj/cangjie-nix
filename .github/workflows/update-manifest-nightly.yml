@@ -45,6 +45,15 @@ jobs:
           app-id: ${{ vars.MANIFEST_UPDATER_APP_ID }}
           private-key: ${{ secrets.MANIFEST_UPDATER_APP_PRIVATE_KEY }}
 
+      - name: Get updater app identity
+        id: app-identity
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          login="${APP_SLUG}[bot]"
+          user_id=$(gh api "/users/${login}" --jq '.id')
+          echo "identity=${login} <${user_id}+${login}@users.noreply.github.com>" >> "$GITHUB_OUTPUT"
       - name: Create PR
         id: pr
         uses: peter-evans/create-pull-request@v8
@@ -52,11 +61,13 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           branch: automation/manifest-nightly-update
           base: master
+          author: ${{ steps.app-identity.outputs.identity }}
+          committer: ${{ steps.app-identity.outputs.identity }}
           commit-message: "chore: update latest nightly manifest"
           title: "chore: update latest nightly manifest"
           body: |
             Update latest nightly cangjie versions in manifests.
-            This PR is prepared automatically at  ${{ github.event.repository.updated_at}}.
+            This PR is prepared automatically at ${{ github.event.repository.updated_at}}.
 
       - name: Enable auto-merge
         if: steps.pr.outputs.pull-request-number != ''
