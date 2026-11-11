@@ -1,5 +1,7 @@
 # nix-cangjie
 
+![cangjie-nix logo](./assets/logo-wide.png)
+
 Declarative and reproducible Cangjie packages with Nix.
 
 Features:
