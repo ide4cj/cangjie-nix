@@ -18,8 +18,7 @@ ONLY_LATEST_VERSION = True
 REPO_LOCAL_PATH = Path(__file__).parent.parent.resolve()
 
 TODAY = date.today()
-LATEST_SDK_NIGHTLY_FILENAME = "latest.nix"
-LATEST_STDX_NIGHTLY_FILENAME = LATEST_SDK_NIGHTLY_FILENAME
+LATEST_MANIFEST_LINK_NAME = "latest.nix"
 MANIFESTS_SDK_NIGHTLY_PATH = Path(REPO_LOCAL_PATH, "manifests/sdk/nightly")
 MANIFESTS_STDX_NIGHTLY_PATH = Path(REPO_LOCAL_PATH, "manifests/stdx/nightly")
 
@@ -53,6 +52,7 @@ def get_manifest_name(date: date) -> str:
     return date.strftime(DATE_FORMAT) + ".nix"
 
 def get_latest_manifest_ref_date(manifest_ref_path: Path) -> date | None:
+    if not manifest_ref_path.exists(): return None
     latest_ref_contents = manifest_ref_path.read_text()
     latest_ref_contents = re.compile(r'"(.*)"').match(latest_ref_contents)
     if latest_ref_contents is None:
@@ -87,7 +87,7 @@ def has_latest_manifest(
 
 
 def need_sdk_update(gh: Gh) -> bool:
-    if has_latest_manifest(MANIFESTS_SDK_NIGHTLY_PATH, LATEST_SDK_NIGHTLY_FILENAME):
+    if has_latest_manifest(MANIFESTS_SDK_NIGHTLY_PATH, LATEST_MANIFEST_LINK_NAME):
         return False
 
     latest_release = gh.release_latest_tag()
@@ -96,14 +96,14 @@ def need_sdk_update(gh: Gh) -> bool:
     if latest_date_upstream is None:
         logger.fatal("Cannot parse latest upstream sdk version")
         return False
-    latest_date_locally = get_latest_manifest_ref_date(Path(MANIFESTS_SDK_NIGHTLY_PATH, LATEST_SDK_NIGHTLY_FILENAME))
+    latest_date_locally = get_latest_manifest_ref_date(Path(MANIFESTS_SDK_NIGHTLY_PATH, LATEST_MANIFEST_LINK_NAME))
     if latest_date_locally is None:
         return True
 
     return latest_date_locally < latest_date_upstream
 
 def need_stdx_update(gh: Gh) -> bool:
-    if has_latest_manifest(MANIFESTS_STDX_NIGHTLY_PATH, LATEST_STDX_NIGHTLY_FILENAME):
+    if has_latest_manifest(MANIFESTS_STDX_NIGHTLY_PATH, LATEST_MANIFEST_LINK_NAME):
         return False
 
     latest_release = gh.release_latest_tag()
@@ -112,7 +112,7 @@ def need_stdx_update(gh: Gh) -> bool:
     if latest_date_upstream is None:
         logger.fatal("Cannot parse latest upstream stdx version")
         return False
-    latest_date_locally = get_latest_manifest_ref_date(Path(MANIFESTS_STDX_NIGHTLY_PATH, LATEST_STDX_NIGHTLY_FILENAME))
+    latest_date_locally = get_latest_manifest_ref_date(Path(MANIFESTS_STDX_NIGHTLY_PATH, LATEST_MANIFEST_LINK_NAME))
     if latest_date_locally is None:
         return True
 
@@ -147,9 +147,22 @@ def commit_manifest(manifest: Path | None, filename: str, dir: Path, dry_run: bo
     if dry_run:
         print(filename)
         print(manifest.read_text())
-        return
-    
-    return manifest.move(Path(dir, filename))
+        return manifest
+
+    new_path = Path(dir, filename)
+    manifest.move(new_path)
+    return new_path
+
+def commit_latest_manifest_link(latest_version: Path | None, dir: Path, dry_run: bool = False) -> Path | None:
+    if latest_version is None: return
+    if dry_run:
+        print(LATEST_MANIFEST_LINK_NAME)
+        print(latest_version.read_text())
+        return latest_version
+
+    link_path = Path(dir, LATEST_MANIFEST_LINK_NAME)
+    link_path.symlink_to(latest_version)
+    return link_path
 
 parser = argparse.ArgumentParser(
     prog="update-manifest-nightly",
@@ -184,16 +197,12 @@ def main():
 
     version = parse_nightly_version(gh.release_latest_tag())
     sdk_manifest = create_sdk_manifest(raw_assets=gh.release_assets(gh.release_latest_tag()), version=version)
-    commit_manifest(sdk_manifest, get_manifest_name(TODAY), MANIFESTS_SDK_NIGHTLY_PATH, dry_run=args.dry_run)
-
-    sdk_manifest_ref = write_latest_manifest_ref(version=version)
-    commit_manifest(sdk_manifest_ref, LATEST_SDK_NIGHTLY_FILENAME, MANIFESTS_SDK_NIGHTLY_PATH, dry_run=args.dry_run)
+    sdk_manifest = commit_manifest(sdk_manifest, get_manifest_name(TODAY), MANIFESTS_SDK_NIGHTLY_PATH, dry_run=args.dry_run)
+    commit_latest_manifest_link(sdk_manifest, MANIFESTS_SDK_NIGHTLY_PATH, dry_run=args.dry_run)
     
     stdx_manifest = create_stdx_manifest(raw_assets=gh.release_assets(gh.release_latest_tag()), version=version)
-    commit_manifest(stdx_manifest, get_manifest_name(TODAY), MANIFESTS_STDX_NIGHTLY_PATH, dry_run=args.dry_run)
-    
-    stdx_manifest_ref = write_latest_manifest_ref(version=version)
-    commit_manifest(stdx_manifest_ref, LATEST_STDX_NIGHTLY_FILENAME, MANIFESTS_STDX_NIGHTLY_PATH, dry_run=args.dry_run)
+    stdx_manifest = commit_manifest(stdx_manifest, get_manifest_name(TODAY), MANIFESTS_STDX_NIGHTLY_PATH, dry_run=args.dry_run)
+    commit_latest_manifest_link(stdx_manifest, MANIFESTS_STDX_NIGHTLY_PATH, dry_run=args.dry_run)
 
 if __name__ == "__main__":
     main()

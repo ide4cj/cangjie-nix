@@ -1,1 +1,1 @@
-"2026-11-12"
+/home/dee/projects/cangjie-nix/manifests/stdx/nightly/2026-11-11.nix

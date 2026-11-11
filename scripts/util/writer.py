@@ -39,18 +39,3 @@ def write_manifest(assets, version) -> Path:
         f.write(b"}")
 
     return Path(manifest.name).resolve()
-
-
-def write_latest_manifest_ref(version) -> Path:
-    latest_date = date(
-        year=int(version["year"]),
-        month=int(version["month"]),
-        day=int(version["day"]),
-    )
-
-    manifest_ref = tempfile.NamedTemporaryFile(prefix="latest.nix", delete=False)
-    with manifest_ref as f:
-        f.write(b'"')
-        f.write(latest_date.strftime(DATE_FORMAT).encode())
-        f.write(b'"')
-    return Path(manifest_ref.name).resolve()
