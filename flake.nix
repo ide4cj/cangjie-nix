@@ -35,10 +35,18 @@
             ) manifests
           );
 
-        mkApp = sdk: {
+        mkApp = {sdk, appName, description ? appName}: {
           type = "app";
-          program = "${sdk}/bin/cjc";
+          program = "${sdk}/bin/${appName}";
           meta = {
+            inherit description;
+          };
+        };
+
+        mkApps = channel: {
+          cjc = mkApp {
+            sdk = channel;
+            appName = "cjc";
             description = "Cangjie compiler";
           };
         };
@@ -92,10 +100,9 @@
           default = lts;
         };
         apps = {
-          nightly.cjc = mkApp nightly.latest;
-          cjc = mkApp nightly.latest;
-          lts.cjc = mkApp lts.latest;
-        };
+          nightly = mkApps nightly.latest;
+          lts = mkApps lts.latest;
+        } // mkApps lts.latest;
 
         # Publish devShell for "nix develop"
         devShells = {
