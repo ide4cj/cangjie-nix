@@ -11,38 +11,104 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        cangjie-bin-nightly = pkgs.callPackage ./source/bin/channel/nightly { inherit system; };
-        cangjie-bin-lts = pkgs.callPackage ./source/bin/channel/lts { inherit system; };
+        platform = (import ./config.nix).platforms.nix2release.${system};
+
+        mkCangjieNightly = import ./source/bin/channel/nightly;
+        mkCangjieLts = import ./source/bin/channel/lts;
+
+        mkBuilds =
+          {
+            pkgs,
+            manifests,
+            mkCangjie,
+          }:
+          builtins.listToAttrs (
+            map (
+              name:
+              let
+                truncatedName = pkgs.lib.removeSuffix ".nix" name;
+              in
+              {
+                name = truncatedName;
+                value = mkCangjie truncatedName;
+              }
+            ) manifests
+          );
+
+        mkApp = {sdk, appName, description ? appName}: {
+          type = "app";
+          program = "${sdk}/bin/${appName}";
+          meta = {
+            inherit description;
+          };
+        };
+
+        mkApps = channel: {
+          cjc = mkApp {
+            sdk = channel;
+            appName = "cjc";
+            description = "Cangjie compiler";
+          };
+        };
+
+        populateDerivations =
+          latestDerivation: allDerivations:
+          latestDerivation.overrideAttrs (old: {
+            passthru =
+              (old.passthru or { })
+              // allDerivations
+              // {
+                latest = latestDerivation;
+              };
+          });
+
+        nightlyBuilds = pkgs.callPackage mkBuilds {
+          manifests = (import ./manifest.nix).sdk.nightly.manifests;
+          mkCangjie =
+            date:
+            (pkgs.callPackage mkCangjieNightly {
+              inherit platform;
+              inherit date;
+            });
+        };
+
+        ltsBuilds = pkgs.callPackage mkBuilds {
+          manifests = (import ./manifest.nix).sdk.lts.manifests;
+          mkCangjie =
+            version:
+            (pkgs.callPackage mkCangjieLts {
+              inherit platform;
+              inherit version;
+            });
+        };
+
+        latestNightly = pkgs.callPackage mkCangjieNightly {
+          inherit platform;
+        };
+        latestLts = pkgs.callPackage mkCangjieLts {
+          inherit platform;
+        };
+
+        nightly = populateDerivations latestNightly nightlyBuilds;
+        lts = populateDerivations latestLts ltsBuilds;
       in
       {
         # Publish derivation
         packages = {
-          nightly = cangjie-bin-nightly;
-          lts = cangjie-bin-lts;
+          inherit nightly;
+          inherit lts;
+          default = lts;
         };
-        # Publish app for "nix run"
         apps = {
-          nightly.cjc = {
-            type = "app";
-            program = "${cangjie-bin-nightly}/bin/cjc";
-            meta = {
-              description = "Cangjie compiler";
-            };
-          };
-          lts.cjc = {
-            type = "app";
-            program = "${cangjie-bin-lts}/bin/cjc";
-            meta = {
-              description = "Cangjie compiler";
-            };
-          };
-        };
+          nightly = mkApps nightly.latest;
+          lts = mkApps lts.latest;
+        } // mkApps lts.latest;
 
         # Publish devShell for "nix develop"
         devShells = {
           nightly = pkgs.mkShellNoCC {
             packages = [
-              cangjie-bin-nightly
+              nightly.latest
             ];
             shellHook = ''
               echo "Cangjie nightly development environment"
@@ -51,13 +117,14 @@
           };
           lts = pkgs.mkShellNoCC {
             packages = [
-              cangjie-bin-lts
+              lts.latest
             ];
             shellHook = ''
               echo "Cangjie LTS development environment"
               echo "$(cjc --version)"
             '';
           };
+          default = lts;
         };
       }
     );

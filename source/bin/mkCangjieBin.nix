@@ -87,4 +87,8 @@ stdenv.mkDerivation {
         --append-flags "--link-options" \
         --append-flags "-I${stdenv.cc.bintools.dynamicLinker}"
   '';
+
+  meta = {
+    mainProgram = "cjc";
+  };
 }

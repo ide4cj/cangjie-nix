@@ -1,3 +1,12 @@
+let
+  getManifests =
+    dir: versionFormat:
+    builtins.filter (
+      name:
+      (builtins.readDir dir).${name} == "regular" # regular files only
+      && builtins.match "${versionFormat}\\.nix" name != null
+    ) (builtins.attrNames (builtins.readDir dir));
+in
 rec {
   version =
     path:
@@ -36,6 +45,11 @@ rec {
       inherit platform;
     };
 
+  # <year>-<month>-<day>
+  sdk.nightly.versionFormat = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
+
+  sdk.nightly.manifests = getManifests manifests/sdk/nightly sdk.nightly.versionFormat;
+
   sdk.lts.latest =
     { platform }:
     let
@@ -45,6 +59,11 @@ rec {
       manifest = import manifests/sdk/lts/${version}.nix;
       inherit platform;
     };
+
+  # <major>-<minor>-<patch>
+  sdk.lts.versionFormat = "[0-9]+\.[0-9]+\.[0-9]+";
+
+  sdk.lts.manifests = getManifests manifests/sdk/lts sdk.lts.versionFormat;
 
   stdx.nightly.latest =
     { platform }:
