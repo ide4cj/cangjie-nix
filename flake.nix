@@ -5,16 +5,19 @@
   };
 
   outputs =
-    inputs@{ nixpkgs, flake-utils, ... }:
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
     # TODO: add support for other systems
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (
       system:
       let
         pkgs = import nixpkgs { inherit system; };
         platform = (import ./config.nix).platforms.nix2release.${system};
-
-        mkCangjieNightly = import ./source/bin/channel/nightly;
-        mkCangjieLts = import ./source/bin/channel/lts;
+        bin = import ./source/bin { inherit pkgs system; };
 
         mkBuilds =
           {
@@ -30,18 +33,24 @@
               in
               {
                 name = truncatedName;
-                value = mkCangjie truncatedName;
+                value = (mkCangjie truncatedName).cangjie;
               }
             ) manifests
           );
 
-        mkApp = {sdk, appName, description ? appName}: {
-          type = "app";
-          program = "${sdk}/bin/${appName}";
-          meta = {
-            inherit description;
+        mkApp =
+          {
+            sdk,
+            appName,
+            description ? appName,
+          }:
+          {
+            type = "app";
+            program = "${sdk}/bin/${appName}";
+            meta = {
+              inherit description;
+            };
           };
-        };
 
         mkApps = channel: {
           cjc = mkApp {
@@ -64,45 +73,33 @@
 
         nightlyBuilds = pkgs.callPackage mkBuilds {
           manifests = (import ./manifest.nix).sdk.nightly.manifests;
-          mkCangjie =
-            date:
-            (pkgs.callPackage mkCangjieNightly {
-              inherit platform;
-              inherit date;
-            });
+          mkCangjie = bin.nightly;
         };
 
         ltsBuilds = pkgs.callPackage mkBuilds {
           manifests = (import ./manifest.nix).sdk.lts.manifests;
-          mkCangjie =
-            version:
-            (pkgs.callPackage mkCangjieLts {
-              inherit platform;
-              inherit version;
-            });
+          mkCangjie = bin.lts;
         };
 
-        latestNightly = pkgs.callPackage mkCangjieNightly {
-          inherit platform;
-        };
-        latestLts = pkgs.callPackage mkCangjieLts {
-          inherit platform;
-        };
-
-        nightly = populateDerivations latestNightly nightlyBuilds;
-        lts = populateDerivations latestLts ltsBuilds;
+        nightly = populateDerivations (bin.nightly {}).cangjie nightlyBuilds;
+        lts = populateDerivations (bin.lts {}).cangjie ltsBuilds;
       in
       {
         # Publish derivation
         packages = {
-          inherit nightly;
-          inherit lts;
+          inherit nightly lts;
           default = lts;
+          # TODO: versioning for stdx
+          stdx = {
+            nightly = (bin.nightly {}).stdx;
+            lts = (bin.lts {}).stdx;
+          };
         };
         apps = {
           nightly = mkApps nightly.latest;
           lts = mkApps lts.latest;
-        } // mkApps lts.latest;
+        }
+        // mkApps lts.latest;
 
         # Publish devShell for "nix develop"
         devShells = {
@@ -124,7 +121,7 @@
               echo "$(cjc --version)"
             '';
           };
-          default = lts;
+          default = self.devShells.${system}.lts;
         };
       }
     );
