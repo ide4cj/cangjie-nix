@@ -1,4 +1,4 @@
-# nix-cangjie
+# cangjie-nix
 
 Declarative and reproducible Cangjie packages with Nix.
 
