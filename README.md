@@ -1,4 +1,4 @@
-# nix-cangjie
+# cangjie-nix
 
 ![cangjie-nix logo](./assets/logo-wide.png)
 
