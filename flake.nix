@@ -20,21 +20,24 @@
         bin = import ./source/bin { inherit pkgs system; };
 
         mkBuilds =
-          {
-            pkgs,
-            manifests,
-            mkCangjie,
-          }:
+          { manifests, mkCangjie }:
           builtins.listToAttrs (
-            map (
-              name:
+            builtins.concatMap (
+              manifest:
               let
-                truncatedName = pkgs.lib.removeSuffix ".nix" name;
+                name = pkgs.lib.removeSuffix ".nix" manifest.filename;
+                cangjie = (mkCangjie { sdkVersion = name; }).cangjie;
               in
-              {
-                name = truncatedName;
-                value = (mkCangjie { sdkVersion = truncatedName; }).cangjie;
-              }
+              [
+                {
+                  inherit name;
+                  value = cangjie;
+                }
+                {
+                  name = manifest.version;
+                  value = cangjie;
+                }
+              ]
             ) manifests
           );
 
@@ -71,18 +74,18 @@
               };
           });
 
-        nightlyBuilds = pkgs.callPackage mkBuilds {
+        nightlyBuilds = mkBuilds {
           manifests = (import ./manifest.nix).sdk.nightly.manifests;
           mkCangjie = bin.nightly;
         };
 
-        ltsBuilds = pkgs.callPackage mkBuilds {
+        ltsBuilds = mkBuilds {
           manifests = (import ./manifest.nix).sdk.lts.manifests;
           mkCangjie = bin.lts;
         };
 
-        nightly = populateDerivations (bin.nightly {}).cangjie nightlyBuilds;
-        lts = populateDerivations (bin.lts {}).cangjie ltsBuilds;
+        nightly = populateDerivations (bin.nightly { }).cangjie nightlyBuilds;
+        lts = populateDerivations (bin.lts { }).cangjie ltsBuilds;
       in
       {
         # Publish derivation
@@ -91,8 +94,8 @@
           default = lts;
           # TODO: versioning for stdx
           stdx = {
-            nightly = (bin.nightly {}).stdx;
-            lts = (bin.lts {}).stdx;
+            nightly = (bin.nightly { }).stdx;
+            lts = (bin.lts { }).stdx;
           };
         };
         apps = {
@@ -100,6 +103,10 @@
           lts = mkApps lts.latest;
         }
         // mkApps lts.latest;
+
+        checks = {
+          versions = import ./tests/versions.nix { inherit pkgs nightly lts; };
+        };
 
         # Publish devShell for "nix develop"
         devShells = {

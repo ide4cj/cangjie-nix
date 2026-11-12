@@ -37,6 +37,7 @@ Provided packages:
 Besides latest SDK, you can pin specific version, like:
 - `cangjie-nix.lts."1.0.5"` (format: `major.minor.patch`)
 - `cangjie-nix.nightly."2026-11-06"` (format: `yyyy-mm-dd`)
+- `cangjie-nix.nightly."1.3.0-alpha.20261106001044"` (format: original version)
 
 Stable versions support:
 - `1.0.5` (LTS)
@@ -58,6 +59,11 @@ nix env shell github:ide4cj/cangjie-nix#nightly
 Specific pinned nightly SDK:
 ```sh
 nix env shell github:ide4cj/cangjie-nix#nightly.2026-11-06
+```
+
+Or by original nightly version:
+```sh
+nix env shell 'github:ide4cj/cangjie-nix#nightly."1.3.0-alpha.20261106001044"'
 ```
 
 Latest nightly `cjc`:

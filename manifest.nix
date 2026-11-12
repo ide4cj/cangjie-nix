@@ -1,12 +1,3 @@
-let
-  getManifests =
-    dir: versionFormat:
-    builtins.filter (
-      name:
-      (builtins.readDir dir).${name} == "regular" # regular files only
-      && builtins.match "${versionFormat}\\.nix" name != null
-    ) (builtins.attrNames (builtins.readDir dir));
-in
 rec {
   version =
     path:
@@ -14,6 +5,13 @@ rec {
       manifest = import path;
     in
     manifest.version;
+
+  getManifests =
+    dir:
+    map (filename: {
+      inherit filename;
+      version = version (dir + "/${filename}");
+    }) (builtins.attrNames (builtins.readDir dir));
 
   getAsset =
     { manifest, platform }:
@@ -45,10 +43,7 @@ rec {
       inherit platform;
     };
 
-  # <year>-<month>-<day>
-  sdk.nightly.versionFormat = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
-
-  sdk.nightly.manifests = getManifests manifests/sdk/nightly sdk.nightly.versionFormat;
+  sdk.nightly.manifests = getManifests manifests/sdk/nightly;
 
   sdk.lts.latest =
     { platform }:
@@ -60,10 +55,7 @@ rec {
       inherit platform;
     };
 
-  # <major>-<minor>-<patch>
-  sdk.lts.versionFormat = "[0-9]+\.[0-9]+\.[0-9]+";
-
-  sdk.lts.manifests = getManifests manifests/sdk/lts sdk.lts.versionFormat;
+  sdk.lts.manifests = getManifests manifests/sdk/lts;
 
   stdx.nightly.latest =
     { platform }:
