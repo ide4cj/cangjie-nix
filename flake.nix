@@ -33,7 +33,7 @@
               in
               {
                 name = truncatedName;
-                value = (mkCangjie truncatedName).cangjie;
+                value = (mkCangjie { sdkVersion = truncatedName; }).cangjie;
               }
             ) manifests
           );

@@ -1,1 +1,1 @@
-/home/dee/projects/cangjie-nix/manifests/sdk/nightly/2026-11-11.nix
+2026-11-11.nix
