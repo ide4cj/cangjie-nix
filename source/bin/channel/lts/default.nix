@@ -1,29 +1,22 @@
-let
-  tld = ./../../../..;
-  manifests = tld + /manifests;
-in
 {
   pkgs,
   platform,
-  version ? (import "${manifests}/sdk/lts/latest.nix"),
-  stdxVersion ? (import "${manifests}/stdx/stable/latest.nix"),
+  sdkVersion ? "latest",
+  stdxVersion ? "latest",
   ...
 }:
 let
-  getAsset = (import "${tld}/manifest.nix").getAsset;
-  asset = {
-    sdk = getAsset {
-      manifest = import "${manifests}/sdk/lts/${version}.nix";
-      inherit platform;
-    };
-    stdx = getAsset {
-      manifest = import "${manifests}/stdx/stable/${stdxVersion}.nix";
-      inherit platform;
-    };
+  tld = ./../../../..;
+  manifests = tld + /manifests;
+  manifest = {
+    sdk = import "${manifests}/sdk/lts/${sdkVersion}.nix";
+    stdx = import "${manifests}/stdx/stable/${stdxVersion}.nix";
+  };
+  mkUrl = {
+    sdk = import ./mkurl.nix;
+    stdx = import ../../mkstdxurl.nix;
   };
 in
 import ../../mkCangjie.nix {
-  inherit pkgs asset;
-  sdkUrl = import ./mkurl.nix;
-  stdxUrl = import ../../mkstdxurl.nix;
+  inherit pkgs manifest mkUrl platform;
 }
