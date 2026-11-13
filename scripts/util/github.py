@@ -26,17 +26,21 @@ class Gh:
         return tag
 
     def release_assets(self, tag: str):
-        rel_str = self.call(
-            "release",
-            "view",
-            "--json",
-            "assets",
-            "--repo",
-            self.repo_owner + "/" + self.repo_name,
-        )
-        assets = json.loads(rel_str)["assets"]
-        logger.debug("Downloaded %d assets for '%s' from github", len(assets), tag)
-        return assets
+        try:
+            rel_str = self.call(
+                "release",
+                "view",
+                "--json",
+                "assets",
+                "--repo",
+                self.repo_owner + "/" + self.repo_name,
+                tag
+            )
+            assets = json.loads(rel_str)["assets"]
+            logger.debug("Downloaded %d assets for '%s' from github", len(assets), tag)
+            return assets
+        except subprocess.CalledProcessError:
+            return []
 
     def release_list_tags(self, count: int):
         response = self.call(

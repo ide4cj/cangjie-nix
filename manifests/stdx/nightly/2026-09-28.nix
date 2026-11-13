@@ -4,17 +4,17 @@
     {
     system = "linux";
       arch = "aarch64";
-      hash = "sha256-w78vdBO2G7Ev9lXn7vn6Szo7sDXSxrsgEBGAB6eMBc0=";
+      hash = "sha256-WL297SwXQcfpXRwvN3AfuH87jCvXXUVRncJBJawvx+U=";
     }
     {
     system = "linux";
       arch = "x64";
-      hash = "sha256-PPTqx87/EQDE9aBLEQP/fVMK1UfR1z9ibUhAy3TtRJo=";
+      hash = "sha256-CarHf5lVKG09o1uaCgrGr2Mc1qk8IVrdqPKeZCPBUYQ=";
     }
     {
     system = "mac";
       arch = "aarch64";
-      hash = "sha256-VXWDswK0H4MYVaQuNXCFTlluwFBAVPIq2uyTSHccON0=";
+      hash = "sha256-DfGrJR9WtRAOXfNQ5Sd3Z50NpkBNCNwaJ4lwQqgkqyw=";
     }
   ];
 }

@@ -150,9 +150,10 @@ parser = argparse.ArgumentParser(
     description="fetches latest releases from upstream and updates manifests",
 )
 parser.add_argument("--dry-run", action="store_true", help="do not create manifests in local repo")
+parser.add_argument("--override", action="store_true", help="override local with remote")
 parser.add_argument("--last", type=int, help="update manifest for dates since specified up to today")
 
-def update_last(entries: int, gh: Gh, dry_run: bool = True):
+def update_last(entries: int, gh: Gh, dry_run: bool = True, override: bool = False):
     if entries < 1:
         logger.warning("Nothing to update")
         return
@@ -161,7 +162,7 @@ def update_last(entries: int, gh: Gh, dry_run: bool = True):
     for tag in tags:
         version = parse_nightly_version(tag)
         date = version_to_date(version)
-        if has_manifest(MANIFESTS_SDK_NIGHTLY_PATH, date) and has_manifest(MANIFESTS_STDX_NIGHTLY_PATH, date):
+        if not override and (has_manifest(MANIFESTS_SDK_NIGHTLY_PATH, date) and has_manifest(MANIFESTS_STDX_NIGHTLY_PATH, date)):
             continue
 
         sdk_manifest = create_sdk_manifest(raw_assets=gh.release_assets(tag), version=version)
@@ -187,7 +188,7 @@ def main():
     gh = GhCached(REPO_OWNER, REPO_NAME, REPO_LOCAL_PATH)
 
     if (args.last):
-        update_last(args.last, gh, dry_run=args.dry_run)
+        update_last(args.last, gh, dry_run=args.dry_run, override=args.override)
         return
 
     _need_update = False
