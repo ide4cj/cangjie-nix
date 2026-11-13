@@ -4,5 +4,5 @@ let
 in
 {
   nightly = args: pkgs.callPackage ./channel/nightly ({ inherit platform; } // args);
-  lts = args: pkgs.callPackage ./channel/lts ({ inherit platform; } // args);
+  stable = args: pkgs.callPackage ./channel/stable ({ inherit platform; } // args);
 }

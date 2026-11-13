@@ -33,11 +33,11 @@ let
     };
 
   latestManifest = {
-    sdk = import ../../manifests/sdk/lts/latest.nix;
+    sdk = import ../../manifests/sdk/stable/latest.nix;
     stdx = import ../../manifests/stdx/stable/latest.nix;
   };
   defaultUrlBuilder = {
-    sdk = import channel/lts/mkurl.nix;
+    sdk = import channel/stable/mkurl.nix;
     stdx = import ./mkstdxurl.nix;
   };
 in
