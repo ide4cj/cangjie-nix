@@ -38,19 +38,20 @@ class Gh:
         logger.debug("Downloaded %d assets for '%s' from github", len(assets), tag)
         return assets
 
-    def release_list_tags(self):
-        LIMIT = 14
-        rel_str = self.call(
+    def release_list_tags(self, count: int):
+        response = self.call(
             "release",
             "list",
             "--limit",
-            str(LIMIT),
+            str(count),
             "--json",
             "tagName",
             "--repo",
             self.repo_owner + "/" + self.repo_name,
         )
-        return json.loads(rel_str)
+        values = json.loads(response)
+        tags = [ obj["tagName"] for obj in values ]
+        return tags
 
     def call(self, *args: str) -> str:
         return subprocess.run(
@@ -70,5 +71,5 @@ class GhCached(Gh):
     def _release_assets(self, tag: str):
         return super().release_assets(tag)
         
-    def _release_list_tags(self):
-        return super().release_list_tags()
+    def _release_list_tags(self, count: int):
+        return super().release_list_tags(count)
