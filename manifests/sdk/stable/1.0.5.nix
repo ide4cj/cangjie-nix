@@ -14,12 +14,6 @@
       hash = "sha256-wNxIuIUf2HhTMIvw71zOcED4aBropTAF1drIFld0WjU=";
       objectKey = "698acfa3bd66ae22b62330b1";
     }
-    # {
-    #   system = "windows";
-    #   arch = "x64";
-    #   hash = "sha256-CMbB3Q3nM5b2OshQhdY155zoT++Y0zDLAIabT8jxyy4=";
-    #   objectKey = "698acebfbd66ae22b62330af";
-    # }
     {
       system = "mac";
       arch = "aarch64";
