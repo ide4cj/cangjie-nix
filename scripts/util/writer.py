@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def write_manifest(assets, version) -> Path:
     manifest = tempfile.NamedTemporaryFile(
-        prefix=f"manifest-{version['year']}-{version['month']}-{version['day']}.nix",
+        # prefix=f"manifest-{version['year']}-{version['month']}-{version['day']}.nix",
         delete=False,
     )
 
