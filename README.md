@@ -40,6 +40,7 @@ Besides latest SDK, you can pin specific version, like:
 - `cangjie-nix.nightly."1.3.0-alpha.20261106001044"` (format: original version)
 
 Stable versions support:
+- `1.2.1` (STS)
 - `1.0.5` (LTS)
 
 Stdx provides `static` and `dynamic` variants under
