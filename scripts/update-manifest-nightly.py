@@ -95,7 +95,7 @@ def need_update_latest_ref(new_date: date, nightly_manifests_path: Path) -> bool
     return latest_date_in_repo < new_date
 
 def create_sdk_manifest(raw_assets, version) -> Path | None:
-    assets = [ parse_sdk_asset(raw_asset) for raw_asset in raw_assets ]
+    assets = [ parse_sdk_nightly_asset(raw_asset) for raw_asset in raw_assets ]
     assets = [ asset for asset in assets if asset is not None ]
     assets = [ asset for asset in assets if is_asset_supported(system=asset["system"], arch=asset["arch"]) ]
     for asset in assets:
