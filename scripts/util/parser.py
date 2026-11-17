@@ -141,6 +141,7 @@ def parse_sdk_stable_assets(raw: str):
         if res is None:
             continue
         res["version"] = asset["version"]
+        res["objectkey"] = asset["objectkey"]
         assets.append(res)
 
     return assets

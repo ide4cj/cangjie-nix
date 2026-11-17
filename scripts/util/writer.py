@@ -18,10 +18,16 @@ def write_manifest(assets, version) -> Path:
         f.write(b'  version = "%b";\n' % version.encode())
 
     def write_asset(f, asset):
+        object_key_field = (
+            f'''
+      objectKey = "{asset["objectkey"]}";'''
+            if "objectkey" in asset
+            else ""
+        )
         str = f'''    {{
     system = "{asset["system"]}";
       arch = "{asset["arch"]}";
-      hash = "sha256-{asset["sha256"]}";
+      hash = "sha256-{asset["sha256"]}";{object_key_field}
     }}
 '''
         f.write(str.encode())
