@@ -41,7 +41,12 @@ Besides latest SDK, you can pin specific version, like:
 
 Stable versions support:
 - `1.2.1` (STS)
+- `1.1.5`
+- `1.1.0`
 - `1.0.5` (LTS)
+- `1.0.3`
+- `1.0.1`
+- `1.0.0`
 
 Stdx provides `static` and `dynamic` variants under
 `cangjie-nix.packages.${system}.stdx`. Each channel (`nightly`, `stable`) selects its
