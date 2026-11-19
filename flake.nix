@@ -155,5 +155,7 @@
           default = self.devShells.${system}.stable;
         };
       }
-    );
+    ) // {
+      templates = import ./template.nix;
+    };
 }
